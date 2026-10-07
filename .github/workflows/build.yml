@@ -13,6 +13,12 @@ jobs:
           channel: stable
           flutter-version: '3.35.7'
           cache: true
+      - name: Prepare embedded font and launcher PNG
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fontconfig imagemagick
+          chmod +x tool/prepare_assets.sh
+          tool/prepare_assets.sh
       - name: Ensure platform files
         run: flutter create --platforms=android,ios --project-name mishnah_tracker .
       - name: Dependencies
