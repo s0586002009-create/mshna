@@ -1,0 +1,27 @@
+import 'package:flutter/material.dart';
+import '../data/database.dart';
+import '../models/mishnah.dart';
+import 'calculations.dart';
+import 'notification_service.dart';
+class AppState extends ChangeNotifier {
+ final AppDatabase database; final NotificationService notifications; MishnahData? data;
+ Map<String,String> settings={}; Set<String> selected={}; Set<String> completed={}; List<DateTime> dates=[]; Set<String> badges={}; bool loading=true;
+ AppState(this.database,this.notifications);
+ String get dedication=>settings['dedication_text']??"הלימוד לעילוי נשמת ר' מאיר משה בן ר' בן ציון הלוי ומינקה בת ר' משה שמואל ע"ה";
+ String get reminderText=>settings['reminder_text']??'נותרו {remaining} פרקים להיום. זמן ללמוד!';
+ int get planned=>int.tryParse(settings['planned_per_day']??'1')??1;
+ DateTime get target=>DateTime.tryParse(settings['target_date']??'')??DateTime.now();
+ bool get onboardingDone=>settings['onboarding_done']=='true';
+ ThemeMode get theme=>settings['theme_mode']=='dark'?ThemeMode.dark:ThemeMode.light;
+ Future<void> init() async {data=await MishnahData.load();settings=await database.settings();selected=(await database.selected()).toSet();completed=await database.completedKeys();dates=await database.completionDates();badges=await database.badges();loading=false;notifyListeners();}
+ int get totalSelected=>selected.fold(0,(sum,id)=>sum+(data?.tractate(id).chapters??0));
+ int get completedCount=>completed.length;
+ PaceResult pace()=>calculatePace(total:totalSelected,completed:completedCount,today:DateTime.now(),target:target,plannedPerDay:planned);
+ Future<void> setSetting(String k,String v) async {await database.setSetting(k,v);settings[k]=v;notifyListeners();}
+ Future<void> finishOnboarding({required Set<String> ids,required DateTime targetDate,required int perDay}) async {await database.setSelected(ids.toList());await database.setSetting('target_date',targetDate.toIso8601String());await database.setSetting('start_date',DateTime.now().toIso8601String());await database.setSetting('planned_per_day','$perDay');await database.setSetting('onboarding_done','true');selected=ids;settings['target_date']=targetDate.toIso8601String();settings['start_date']=DateTime.now().toIso8601String();settings['planned_per_day']='$perDay';settings['onboarding_done']='true';notifyListeners();}
+ Future<void> toggle(String id,int chapter,bool value) async {await database.toggleProgress(id,chapter,value);completed=await database.completedKeys();dates=await database.completionDates();await checkBadges();notifyListeners();}
+ Future<void> checkBadges() async {if(streak()>=7)await database.saveBadge('streak7');final completeTracts=data!.sedarim.expand((s)=>s.tractates).where((t)=>selected.contains(t.id)).where((t)=>List.generate(t.chapters,(i)=>'${t.id}:${i+1}').every(completed.contains));for(final t in completeTracts)await database.saveBadge('tractate_${t.id}');if(weekCount()>=7)await database.saveBadge('weekly_goal');badges=await database.badges();}
+ int streak()=>streakFromDays(dates);
+ int weekCount(){final now=DateTime.now();final start=DateTime(now.year,now.month,now.day).subtract(Duration(days:now.weekday%7));return dates.where((d)=>!d.isBefore(start)).length;}
+ List<int> weekly(){final now=DateTime.now();final out=List.filled(7,0);for(final d in dates){final diff=DateTime(d.year,d.month,d.day).difference(DateTime(now.year,now.month,now.day)).inDays;if(diff<=0&&diff>-7)out[d.weekday%7]++;}return out;}
+}
