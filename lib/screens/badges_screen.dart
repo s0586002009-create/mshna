@@ -1,0 +1,5 @@
+import 'package:flutter/material.dart';
+import '../services/app_state.dart';
+import '../widgets/dedication_banner.dart';
+class BadgesScreen extends StatelessWidget{final AppState state;const BadgesScreen({super.key,required this.state});@override Widget build(BuildContext c)=>Scaffold(appBar:AppBar(title:const Text('תגים')),body:Directionality(textDirection:TextDirection.rtl,child:ListView(padding:const EdgeInsets.all(12),children:[DedicationBanner(text:state.dedication),_badge(c,'streak7','7 ימי רצף','לימוד לפחות פעם אחת במשך 7 ימים רצופים'),_badge(c,'weekly_goal','עמידה ביעד שבועי','לפחות 7 סימונים בשבוע'),for(final id in state.badges.where((x)=>x.startsWith('tractate_')))ListTile(leading:const Icon(Icons.menu_book),title:Text('סיום מסכת: ${id.substring(10)}'),trailing:const Icon(Icons.verified))]));}
+Widget _badge(BuildContext c,String id,String title,String sub)=>ListTile(leading:Icon(state.badges.contains(id)?Icons.workspace_premium:Icons.lock),title:Text(title),subtitle:Text(sub),trailing:state.badges.contains(id)?const Text('נפתח'):const Text('נעול'));}
