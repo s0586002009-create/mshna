@@ -1,0 +1,3 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mishnah_tracker/services/calculations.dart';
+void main(){test('pace formulas',(){final r=calculatePace(total:100,completed:20,today:DateTime(2026,1,1),target:DateTime(2026,1,10),plannedPerDay:10);expect(r.remaining,80);expect(r.daysLeft,10);expect(r.requiredPerDay,8);expect(r.finishDays,8);expect(r.finishDate,DateTime(2026,1,8));});test('past target has zero days',(){final r=calculatePace(total:10,completed:2,today:DateTime(2026,2,1),target:DateTime(2026,1,1),plannedPerDay:2);expect(r.daysLeft,0);expect(r.requiredPerDay,8);});}
