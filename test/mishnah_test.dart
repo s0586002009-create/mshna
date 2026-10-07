@@ -1,0 +1,3 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mishnah_tracker/models/mishnah.dart';
+void main(){TestWidgetsFlutterBinding.ensureInitialized();test('mishnah json loads and totals are computed',()async{final d=await MishnahData.load();expect(d.sedarim.length,6);expect(d.sedarim.first.tractates.first.name,'ברכות');expect(d.tractate('avot').chapters,6);expect(d.totalChapters,525);});}
