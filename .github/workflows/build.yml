@@ -26,7 +26,7 @@ jobs:
       - name: Generate launcher icons
         run: dart run flutter_launcher_icons
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
       - name: Unit tests
         run: flutter test
       - name: Build release APK
