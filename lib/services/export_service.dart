@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'app_state.dart';
@@ -44,7 +45,7 @@ class ExportService {
       pageTheme: const pw.PageTheme(margin: pw.EdgeInsets.all(24)),
       build: (_) => [
         pw.Container(padding: const pw.EdgeInsets.all(18),
-          decoration: pw.BoxDecoration(color: const pw.PdfColor.fromInt(0xFFF2E1C7), borderRadius: pw.BorderRadius.circular(16)),
+          decoration: pw.BoxDecoration(color: const PdfColor.fromInt(0xFFF2E1C7), borderRadius: pw.BorderRadius.circular(16)),
           child: pw.Column(children: [
             pw.Text('משניות', style: pw.TextStyle(font: font, fontSize: 28, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
@@ -67,17 +68,17 @@ class ExportService {
           padding: const pw.EdgeInsets.symmetric(vertical: 3),
           child: pw.Row(children: [
             pw.SizedBox(width: 55, child: pw.Text(d.sederNames[i], style: pw.TextStyle(font: font, fontSize: 9))),
-            pw.Expanded(child: pw.Container(height: 14, color: const pw.PdfColor.fromInt(0xFFE5DDD2),
+            pw.Expanded(child: pw.Container(height: 14, color: const PdfColor.fromInt(0xFFE5DDD2),
               child: pw.Align(alignment: pw.Alignment.centerRight, child: pw.Container(
                 width: d.seders.isEmpty || d.seders.reduce((a,b)=>a>b?a:b)==0 ? 0 : 300*d.seders[i]/d.seders.reduce((a,b)=>a>b?a:b),
-                height: 14, color: pw.PdfColor.fromInt(colors[i]))))),
+                height: 14, color: PdfColor.fromInt(colors[i]))))),
             pw.SizedBox(width: 5), pw.Text('${d.seders[i]}', style: pw.TextStyle(font: font, fontSize: 9)),
           ])),
         pw.SizedBox(height: 12),
         pw.Text('תגים שנפתחו', style: pw.TextStyle(font: font, fontSize: 15, fontWeight: pw.FontWeight.bold)),
         pw.Wrap(spacing: 5, runSpacing: 5, children: [
           for (final b in d.badges) pw.Container(padding: const pw.EdgeInsets.all(6),
-            decoration: pw.BoxDecoration(color: const pw.PdfColor.fromInt(0xFFE7C77D), borderRadius: pw.BorderRadius.circular(8)),
+            decoration: pw.BoxDecoration(color: const PdfColor.fromInt(0xFFE7C77D), borderRadius: pw.BorderRadius.circular(8)),
             child: pw.Text(b, style: pw.TextStyle(font: font, fontSize: 9))),
         ]),
       ],
@@ -88,7 +89,7 @@ class ExportService {
   }
 
   pw.Widget _metric(pw.Font f,String t,String v)=>pw.Container(width:90,padding:const pw.EdgeInsets.all(8),
-    decoration:pw.BoxDecoration(color:const pw.PdfColor.fromInt(0xFFF8EEDC),borderRadius:pw.BorderRadius.circular(9)),
+    decoration:pw.BoxDecoration(color:const PdfColor.fromInt(0xFFF8EEDC),borderRadius:pw.BorderRadius.circular(9)),
     child:pw.Column(children:[pw.Text(v,style:pw.TextStyle(font:f,fontSize:16,fontWeight:pw.FontWeight.bold)),
       pw.Text(t,style:pw.TextStyle(font:f,fontSize:8))]));
 
@@ -99,7 +100,7 @@ class ExportService {
       crossAxisAlignment:pw.CrossAxisAlignment.end,mainAxisAlignment:pw.MainAxisAlignment.spaceEvenly,
       children:[for(var i=0;i<7;i++) pw.Column(mainAxisAlignment:pw.MainAxisAlignment.end,children:[
         pw.Text('${v[i]}',style:pw.TextStyle(font:f,fontSize:8)),
-        pw.Container(width:24,height:max==0?2:75*v[i]/max,color:const pw.PdfColor.fromInt(0xFF7A5637)),
+        pw.Container(width:24,height:max==0?2:75*v[i]/max,color:const PdfColor.fromInt(0xFF7A5637)),
         pw.Text(labels[i],style:pw.TextStyle(font:f,fontSize:8)),
       ])],
     ));
