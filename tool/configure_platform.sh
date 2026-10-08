@@ -7,6 +7,8 @@ s=m.read_text()
 p='    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>'
 if p not in s:s=s.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">','<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n'+p)
 s=s.replace('android:label="mishnah_tracker"','android:label="משניות"')
+if 'android:roundIcon=' not in s:
+    s=s.replace('android:icon="@mipmap/ic_launcher"', 'android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher"')
 s=s.replace('android:label="@string/app_name"','android:label="@string/app_name"')
 m.write_text(s)
 v=Path("android/app/src/main/res/values/strings.xml")
