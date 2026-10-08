@@ -59,32 +59,76 @@ class _SettingsScreenState extends State<SettingsScreen>{
         style:OutlinedButton.styleFrom(foregroundColor:Theme.of(c).colorScheme.error)),
     ])));
 
-  Future<void> _editSelection()async{
-    final chosen=Set<String>.from(widget.state.selected);
-    final result=await showModalBottomSheet<Set<String>>(context:context,isScrollControlled:true,builder:(sheet)=>StatefulBuilder(
-      builder:(c,set)=>Directionality(textDirection:TextDirection.rtl,child:SafeArea(child:SizedBox(
-        height:MediaQuery.of(c).size.height*.88,child:Column(children:[
-          const Padding(padding:EdgeInsets.all(14),child:Text('בחירת סדרים ומסכתות',style:TextStyle(fontSize:20,fontWeight:FontWeight.bold))),
-          const Padding(padding:EdgeInsets.symmetric(horizontal:14),child:Text('הסרה אינה מוחקת התקדמות. הוספה מחדש מחזירה אותה.')),
-          Expanded(child:ListView(children:[for(final s in widget.state.data!.sedarim)ExpansionTile(
-            title:Text(s.name),leading:Checkbox(value:s.tractates.every((t)=>chosen.contains(t.id)),tristate:true,
-              onChanged:(v)=>set(()=>v==true?chosen.addAll(s.tractates.map((t)=>t.id)):chosen.removeAll(s.tractates.map((t)=>t.id)))),
-            children:[for(final t in s.tractates)CheckboxListTile(value:chosen.contains(t.id),title:Text(t.name),
-              subtitle:Text('${t.chapters} פרקים'),onChanged:(v)=>set(()=>v==true?chosen.add(t.id):chosen.remove(t.id)))] )])),
-          Padding(padding:const EdgeInsets.all(10),child:FilledButton(onPressed:()=>Navigator.pop(sheet,chosen),child:const Text('שמור בחירה'))),
-        ])))));
-    if(result==null)return;
-    final removed=widget.state.selected.difference(result).where((id)=>widget.state.completed.any((k)=>k.startsWith('${id}:'))).toList();
-    if(removed.isNotEmpty&&mounted){
-      final names=removed.map((id)=>widget.state.data!.tractate(id).name).join(', ');
-      final ok=await showDialog<bool>(context:context,builder:(c)=>AlertDialog(
-        title:const Text('יש התקדמות במסכת'),content:Text('במסכתות ${names} יש התקדמות. ההסרה רק תסתיר אותן ולא תמחק את ההתקדמות. להמשיך?'),
-        actions:[TextButton(onPressed:()=>Navigator.pop(c,false),child:const Text('ביטול')),
-          FilledButton(onPressed:()=>Navigator.pop(c,true),child:const Text('המשך'))]));
-      if(ok!=true)return;
+  Future<void> _editSelection() async {
+    final chosen = Set<String>.from(widget.state.selected);
+    final result = await showModalBottomSheet<Set<String>>(
+      context: context, isScrollControlled: true,
+      builder: (sheet) => StatefulBuilder(
+        builder: (c, set) {
+          final data = widget.state.data!;
+          return Directionality(textDirection: TextDirection.rtl, child: SafeArea(
+            child: SizedBox(
+              height: MediaQuery.of(c).size.height * .88,
+              child: Column(children: [
+                const Padding(padding: EdgeInsets.all(14),
+                  child: Text('בחירת סדרים ומסכתות', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                const Padding(padding: EdgeInsets.symmetric(horizontal: 14),
+                  child: Text('הסרה אינה מוחקת התקדמות. הוספה מחדש מחזירה אותה.')),
+                Expanded(child: ListView(children: [
+                  for (final s in data.sedarim) ExpansionTile(
+                    title: Text(s.name),
+                    leading: Checkbox(
+                      value: s.tractates.every((t) => chosen.contains(t.id)),
+                      tristate: true,
+                      onChanged: (v) => set(() {
+                        if (v == true) chosen.addAll(s.tractates.map((t) => t.id));
+                        else chosen.removeAll(s.tractates.map((t) => t.id));
+                      }),
+                    ),
+                    children: [
+                      for (final t in s.tractates) CheckboxListTile(
+                        value: chosen.contains(t.id),
+                        title: Text(t.name),
+                        subtitle: Text('${t.chapters} פרקים'),
+                        onChanged: (v) => set(() {
+                          if (v == true) chosen.add(t.id);
+                          else chosen.remove(t.id);
+                        }),
+                      ),
+                    ],
+                  ),
+                ])),
+                Padding(padding: const EdgeInsets.all(10),
+                  child: FilledButton(onPressed: () => Navigator.pop(sheet, chosen), child: const Text('שמור בחירה'))),
+              ]),
+            ),
+          ));
+        },
+      ),
+    );
+
+    if (result == null) return;
+    final removed = widget.state.selected.difference(result)
+        .where((id) => widget.state.completed.any((k) => k.startsWith('${id}:')))
+        .toList();
+
+    if (removed.isNotEmpty && mounted) {
+      final names = removed.map((id) => widget.state.data!.tractate(id).name).join(', ');
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: const Text('יש התקדמות במסכת'),
+          content: Text('במסכתות ${names} יש התקדמות. ההסרה רק תסתיר אותן ולא תמחק את ההתקדמות. להמשיך?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('ביטול')),
+            FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('המשך')),
+          ],
+        ),
+      );
+      if (ok != true) return;
     }
     await widget.state.setSelectedTractates(result);
-    if(mounted)setState((){});
+    if (mounted) setState(() {});
   }
 
   Future<void> _save()async{
