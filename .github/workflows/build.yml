@@ -24,6 +24,10 @@ jobs:
           cp pubspec.yaml /tmp/mishnah_pubspec.yaml
           flutter create --platforms=android,ios --project-name mishnah_tracker .
           cp /tmp/mishnah_pubspec.yaml pubspec.yaml
+      - name: Configure platform metadata
+        run: |
+          chmod +x tool/configure_platform.sh
+          tool/configure_platform.sh
       - name: Configure Android core library desugaring
         run: |
           cat >> android/app/build.gradle.kts <<'EOF'
