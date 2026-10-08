@@ -22,7 +22,7 @@ jobs:
       - name: Ensure platform files
         run: |
           cp pubspec.yaml /tmp/mishnah_pubspec.yaml
-          flutter create --overwrite --platforms=android,ios --project-name mishnah_tracker .
+          flutter create --platforms=android,ios --project-name mishnah_tracker .
           cp /tmp/mishnah_pubspec.yaml pubspec.yaml
       - name: Configure Android core library desugaring
         run: |
