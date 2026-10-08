@@ -8,26 +8,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: '3.35.7'
           cache: true
+
       - name: Prepare embedded font and launcher PNG
         run: |
           sudo apt-get update
           sudo apt-get install -y fontconfig imagemagick
           chmod +x tool/prepare_assets.sh
           tool/prepare_assets.sh
+
       - name: Ensure platform files
         run: |
           cp pubspec.yaml /tmp/mishnah_pubspec.yaml
-          flutter create --platforms=android,ios --project-name mishnah_tracker .
+          flutter create --overwrite --platforms=android,ios --project-name mishnah_tracker .
           cp /tmp/mishnah_pubspec.yaml pubspec.yaml
+
       - name: Configure platform metadata
         run: |
           chmod +x tool/configure_platform.sh
           tool/configure_platform.sh
+
       - name: Configure Android core library desugaring
         run: |
           cat >> android/app/build.gradle.kts <<'EOF'
@@ -40,19 +45,53 @@ jobs:
             coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
           }
           EOF
+
       - name: Dependencies
         run: flutter pub get
+
       - name: Generate launcher icons
         run: dart run flutter_launcher_icons
+
       - name: Analyze
         run: flutter analyze --no-fatal-infos
+
       - name: Unit tests
         run: flutter test
-      - name: Build release APK
-        run: flutter build apk --release --split-per-abi
-      - name: Upload APK
+
+      - name: Build single universal release APK
+        run: flutter build apk --release
+
+      - name: Verify APK signature and package
+        shell: bash
+        run: |
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose "$APK"
+          unzip -t "$APK" >/dev/null
+          echo "APK verified: $APK"
+          ls -lh "$APK"
+
+      - name: Install and launch APK on clean Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -no-audio -no-boot-anim
+          disable-animations: true
+          script: |
+            adb install -r build/app/outputs/flutter-apk/app-release.apk
+            adb shell pm path com.example.mishnah_tracker
+            adb shell monkey -p com.example.mishnah_tracker 1
+            sleep 5
+            adb shell dumpsys package com.example.mishnah_tracker | grep -E "versionName|versionCode|targetSdk|packageName" | head -20
+            adb shell am force-stop com.example.mishnah_tracker
+
+      - name: Upload final APK
         uses: actions/upload-artifact@v4
         with:
-          name: mishnah-tracker-release-apks
-          path: build/app/outputs/flutter-apk/app-*-release.apk
+          name: mishnah-tracker-final-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
