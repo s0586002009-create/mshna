@@ -20,7 +20,7 @@ jobs:
           chmod +x tool/prepare_assets.sh
           tool/prepare_assets.sh
       - name: Ensure platform files
-        run: flutter create --platforms=android,ios --project-name mishnah_tracker .
+        run: flutter create --overwrite --platforms=android,ios --project-name mishnah_tracker .
       - name: Configure Android core library desugaring
         run: |
           cat >> android/app/build.gradle <<'EOF'
